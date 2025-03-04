@@ -1,0 +1,94 @@
+/* music_player.css */
+
+/* Root container */
+.root {
+    -fx-background-color: #121212; /* Dark background (YouTube Music style) */
+    -fx-font-family: "Arial", sans-serif;
+    -fx-font-size: 16px;
+    -fx-padding: 20px;
+}
+
+/* Title label */
+.label {
+    -fx-text-fill: white;
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-padding: 10px 0;
+    -fx-alignment: center;
+}
+
+/* Song information */
+.song-info {
+    -fx-text-fill: #bdbdbd;
+    -fx-font-size: 16px;
+    -fx-alignment: center;
+}
+
+/* Controls layout */
+.controls {
+    -fx-alignment: center;
+    -fx-spacing: 15px;
+    -fx-padding: 20px;
+}
+
+/* Buttons */
+.button {
+    -fx-background-color: #6200ea; /* Purple button (YouTube Music Style) */
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 10px 20px;
+    -fx-border-radius: 50%;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 5, 0.5, 1, 1);
+}
+
+.button:hover {
+    -fx-background-color: #3700b3; /* Darker purple on hover */
+}
+
+.button:pressed {
+    -fx-background-color: #bb86fc; /* Light purple when pressed */
+}
+
+/* Album cover */
+.album-cover {
+    -fx-background-radius: 10%;
+    -fx-border-radius: 10%;
+    -fx-pref-width: 200px;
+    -fx-pref-height: 200px;
+    -fx-background-image: url('default_album_cover.jpg');
+    -fx-background-size: cover;
+}
+
+/* Play/Pause button and progress */
+.play-pause {
+    -fx-font-size: 30px;
+    -fx-padding: 10px;
+    -fx-text-fill: white;
+    -fx-background-color: transparent;
+    -fx-border: none;
+    -fx-cursor: hand;
+}
+
+/* Next/Previous buttons */
+.nav-buttons {
+    -fx-font-size: 20px;
+    -fx-text-fill: white;
+    -fx-background-color: transparent;
+    -fx-border: none;
+    -fx-cursor: hand;
+}
+
+/* music_player.css */
+
+/* Album cover */
+.album-cover {
+    -fx-background-radius: 10%;
+    -fx-border-radius: 10%;
+    -fx-pref-width: 200px;
+    -fx-pref-height: 200px;
+    -fx-background-image: url('default_album_cover.jpg');
+    -fx-background-size: cover;
+}
+
+
