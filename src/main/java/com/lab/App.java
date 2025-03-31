@@ -24,14 +24,12 @@ public class App extends Application {
     private String currentPlaylist = "All";
     private int currentTrackIndex = 0;
     private ComboBox<String> playlistSelector;
+    private TextField newPlaylistField;
 
     @Override
     public void start(Stage primaryStage) {
 
         playlists.put("All", new ArrayList<>());
-        playlists.put("Pop", new ArrayList<>());
-        playlists.put("Rock", new ArrayList<>());
-        playlists.put("Jazz", new ArrayList<>());
 
         // UI Components
         Button openButton = new Button("Open Music Files");
@@ -42,10 +40,52 @@ public class App extends Application {
         Label songLabel = new Label("No Song Playing");
         Label songInfoLabel = new Label("Song Info");
 
+        // Playlist Management
+        HBox playlistManagement = new HBox(10);
+        newPlaylistField = new TextField();
+        newPlaylistField.setPromptText("ชื่อ Playlist ใหม่");
+        Button createPlaylistButton = new Button("สร้าง Playlist");
+        Button addToPlaylistButton = new Button("เพิ่มเพลงลง Playlist");
+        Button deletePlaylistButton = new Button("ลบ Playlist");
+
+        playlistManagement.getChildren().addAll(newPlaylistField, createPlaylistButton, addToPlaylistButton, deletePlaylistButton);
+        playlistManagement.setAlignment(Pos.CENTER);
+
         // Dropdown เลือก Playlist
         playlistSelector = new ComboBox<>();
-        playlistSelector.getItems().addAll("All", "Pop", "Rock", "Jazz");
+        playlistSelector.getItems().add("All");
         playlistSelector.setValue("All");
+
+        // สร้าง Playlist ใหม่
+        createPlaylistButton.setOnAction(e -> {
+            String newPlaylistName = newPlaylistField.getText().trim();
+            if (!newPlaylistName.isEmpty() && !playlists.containsKey(newPlaylistName)) {
+                playlists.put(newPlaylistName, new ArrayList<>());
+                playlistSelector.getItems().add(newPlaylistName);
+                newPlaylistField.clear();
+            }
+        });
+
+        // เพิ่มเพลงลง Playlist
+        addToPlaylistButton.setOnAction(e -> {
+            String selectedPlaylist = playlistSelector.getValue();
+            if (!selectedPlaylist.equals("All") && currentSong != null) {
+                if (!playlists.get(selectedPlaylist).contains(currentSong)) {
+                    playlists.get(selectedPlaylist).add(currentSong);
+                }
+            }
+        });
+
+        // ลบ Playlist
+        deletePlaylistButton.setOnAction(e -> {
+            String selectedPlaylist = playlistSelector.getValue();
+            if (!selectedPlaylist.equals("All")) {
+                playlists.remove(selectedPlaylist);
+                playlistSelector.getItems().remove(selectedPlaylist);
+                playlistSelector.setValue("All");
+                currentPlaylist = "All";
+            }
+        });
 
         // Sliders
         Slider progressSlider = new Slider(0, 100, 0);
@@ -60,19 +100,36 @@ public class App extends Application {
 
         // File chooser
         openButton.setOnAction(e -> {
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Audio Files", "*.mp3", "*.wav", "*.aac"));
-            List<File> files = fileChooser.showOpenMultipleDialog(primaryStage);
-            if (files != null) {
-                for (File file : files) {
-                    Song song = assignSongType(file);
-                    playlists.get("All").add(song);
-        
-                    // 🛠️ แก้ไขให้แน่ใจว่ามี key ก่อนเรียก add()
-                    playlists.computeIfAbsent(song.getSongType(), k -> new ArrayList<>()).add(song);
+            try {
+                FileChooser fileChooser = new FileChooser();
+                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Audio Files", "*.mp3", "*.wav", "*.aac"));
+                List<File> files = fileChooser.showOpenMultipleDialog(primaryStage);
+                if (files != null && !files.isEmpty()) {
+                    int addedCount = 0;
+                    for (File file : files) {
+                        if (file.exists() && file.canRead()) {
+                            Song song = assignSongType(file);
+                            playlists.get("All").add(song);
+                            playlists.computeIfAbsent(song.getSongType(), k -> new ArrayList<>()).add(song);
+                            addedCount++;
+                        }
+                    }
+                    if (addedCount > 0) {
+                        currentTrackIndex = playlists.get("All").size() - addedCount;
+                        playTrack(songLabel, songInfoLabel, progressSlider, albumCover, playPauseButton);
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("เพิ่มเพลงสำเร็จ");
+                        alert.setHeaderText(null);
+                        alert.setContentText("เพิ่มเพลงจำนวน " + addedCount + " เพลงเรียบร้อยแล้ว");
+                        alert.show();
+                    }
                 }
-                currentTrackIndex = 0;
-                playTrack(songLabel, songInfoLabel, progressSlider, albumCover, playPauseButton);
+            } catch (Exception ex) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("เกิดข้อผิดพลาด");
+                alert.setHeaderText(null);
+                alert.setContentText("ไม่สามารถเพิ่มเพลงได้: " + ex.getMessage());
+                alert.show();
             }
         });
 
@@ -152,7 +209,7 @@ public class App extends Application {
         HBox mainControls = new HBox(15, leftSpacer, controlsLayout, rightSpacer, volumeLayout);
         mainControls.setAlignment(Pos.CENTER);
 
-        VBox mainLayout = new VBox(15, songLabel, songInfoLabel, playlistSelector, albumCover, mainControls, openButton, stopButton, progressSlider);
+        VBox mainLayout = new VBox(15, songLabel, songInfoLabel, playlistSelector, playlistManagement, albumCover, mainControls, openButton, stopButton, progressSlider);
         mainLayout.setAlignment(Pos.CENTER);
         mainLayout.setStyle("-fx-padding: 20px;");
         Scene scene = new Scene(mainLayout, 450, 500);

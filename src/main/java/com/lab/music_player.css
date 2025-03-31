@@ -2,55 +2,138 @@
     -fx-background-color: #121212;
     -fx-padding: 20px;
     -fx-alignment: center;
+    -fx-background-image: linear-gradient(45deg, #121212 0%, #1a1a1a 100%);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 15, 0, 0, 5);
 }
 
 .button {
     -fx-background-color: #1DB954;
     -fx-text-fill: white;
-    -fx-padding: 10px 20px;
+    -fx-padding: 12px 24px;
     -fx-font-size: 14px;
+    -fx-background-radius: 25px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0, 0, 3);
+    -fx-min-width: 45px;
+    -fx-min-height: 45px;
+    -fx-alignment: center;
+    -fx-content-display: center;
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-background-color: #1ed760;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 12, 0, 0, 4);
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
 }
 
 .play-pause {
     -fx-background-color: #1DB954;
     -fx-text-fill: white;
-    -fx-padding: 10px 20px;
-    -fx-font-size: 14px;
+    -fx-padding: 18px 28px;
+    -fx-font-size: 20px;
+    -fx-background-radius: 30px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 12, 0, 0, 4);
+    -fx-min-width: 60px;
+    -fx-min-height: 60px;
+}
+
+.play-pause:hover {
+    -fx-background-color: #1ed760;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 12, 0, 0, 4);
 }
 
 .nav-buttons {
     -fx-background-color: #282828;
+    -fx-text-fill: #b3b3b3;
+    -fx-padding: 12px 22px;
+    -fx-font-size: 16px;
+    -fx-background-radius: 15px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 8, 0, 0, 2);
+}
+
+.nav-buttons:hover {
+    -fx-background-color: #333333;
     -fx-text-fill: white;
-    -fx-padding: 10px 20px;
-    -fx-font-size: 14px;
 }
 
 .label {
     -fx-text-fill: white;
     -fx-font-size: 16px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 5, 0, 0, 1);
 }
 
 .song-info {
-    -fx-text-fill: gray;
-    -fx-font-size: 12px;
+    -fx-text-fill: #b3b3b3;
+    -fx-font-size: 14px;
+    -fx-font-style: italic;
 }
 
 .album-cover {
     -fx-background-color: #1C1C1C;
-    -fx-border-radius: 10px;
+    -fx-border-radius: 20px;
+    -fx-background-radius: 20px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 20, 0, 0, 8);
+    -fx-padding: 15px;
+    -fx-min-width: 250px;
+    -fx-min-height: 250px;
     -fx-alignment: center;
-    -fx-background-radius: 10px;
 }
 
 .controls {
     -fx-alignment: center;
+    -fx-spacing: 20px;
+    -fx-padding: 20px;
+    -fx-background-color: #282828;
+    -fx-background-radius: 15px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0, 0, 3);
+    -fx-max-width: 600px;
+    -fx-min-width: 400px;
 }
 
 .slider {
     -fx-background-color: #282828;
     -fx-accent: #1DB954;
+    -fx-control-inner-background: #404040;
+    -fx-background-radius: 10px;
 }
 
-.slider:focused {
-    -fx-accent: #1DB954;
+.slider .thumb {
+    -fx-background-color: #1DB954;
+    -fx-background-radius: 50%;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 8, 0, 0, 2);
+}
+
+.slider .thumb:hover {
+    -fx-background-color: #1ed760;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 10, 0, 0, 3);
+}
+
+.slider .track {
+    -fx-background-radius: 5px;
+}
+
+.combo-box {
+    -fx-background-color: #282828;
+    -fx-text-fill: white;
+    -fx-background-radius: 10px;
+    -fx-padding: 5px;
+}
+
+.combo-box .list-cell {
+    -fx-text-fill: white;
+    -fx-background-color: transparent;
+}
+
+.combo-box .list-view {
+    -fx-background-color: #282828;
+    -fx-background-radius: 5px;
+}
+
+.text-field {
+    -fx-background-color: #282828;
+    -fx-text-fill: white;
+    -fx-background-radius: 10px;
+    -fx-padding: 8px 12px;
+    -fx-prompt-text-fill: #808080;
 }
