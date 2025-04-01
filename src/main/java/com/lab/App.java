@@ -17,6 +17,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javafx.collections.MapChangeListener;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 public class App extends Application {
     private Song currentSong;
@@ -25,6 +27,7 @@ public class App extends Application {
     private int currentTrackIndex = 0;
     private ComboBox<String> playlistSelector;
     private TextField newPlaylistField;
+    private ListView<String> songListView;
 
     @Override
     public void start(Stage primaryStage) {
@@ -48,8 +51,11 @@ public class App extends Application {
         Button createPlaylistButton = new Button("สร้าง Playlist");
         Button addToPlaylistButton = new Button("เพิ่มเพลงลง Playlist");
         Button deletePlaylistButton = new Button("ลบ Playlist");
+        ComboBox<String> targetPlaylistSelector = new ComboBox<>();
+        targetPlaylistSelector.setPromptText("เลือก Playlist ที่ต้องการเพิ่มเพลง");
+        targetPlaylistSelector.getItems().add("All");
 
-        playlistManagement.getChildren().addAll(newPlaylistField, createPlaylistButton, addToPlaylistButton, deletePlaylistButton);
+        playlistManagement.getChildren().addAll(newPlaylistField, createPlaylistButton, targetPlaylistSelector, addToPlaylistButton, deletePlaylistButton);
         playlistManagement.setAlignment(Pos.CENTER);
 
         // Dropdown เลือก Playlist
@@ -63,17 +69,41 @@ public class App extends Application {
             if (!newPlaylistName.isEmpty() && !playlists.containsKey(newPlaylistName)) {
                 playlists.put(newPlaylistName, new ArrayList<>());
                 playlistSelector.getItems().add(newPlaylistName);
+                targetPlaylistSelector.getItems().add(newPlaylistName);
                 newPlaylistField.clear();
             }
         });
 
         // เพิ่มเพลงลง Playlist
         addToPlaylistButton.setOnAction(e -> {
-            String selectedPlaylist = playlistSelector.getValue();
-            if (!selectedPlaylist.equals("All") && currentSong != null) {
-                if (!playlists.get(selectedPlaylist).contains(currentSong)) {
-                    playlists.get(selectedPlaylist).add(currentSong);
+            String selectedPlaylist = targetPlaylistSelector.getValue();
+            if (selectedPlaylist != null && !selectedPlaylist.equals("All")) {
+                ObservableList<Integer> selectedIndices = songListView.getSelectionModel().getSelectedIndices();
+                if (!selectedIndices.isEmpty()) {
+                    List<Song> allSongs = playlists.get(currentPlaylist);
+                    int addedCount = 0;
+                    for (int index : selectedIndices) {
+                        Song selectedSong = allSongs.get(index);
+                        if (!playlists.get(selectedPlaylist).contains(selectedSong)) {
+                            playlists.get(selectedPlaylist).add(selectedSong);
+                            addedCount++;
+                        }
+                    }
+                    updateSongList(currentPlaylist);
+                    if (addedCount > 0) {
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("เพิ่มเพลงสำเร็จ");
+                        alert.setHeaderText(null);
+                        alert.setContentText("เพิ่มเพลงจำนวน " + addedCount + " เพลงเรียบร้อยแล้ว");
+                        alert.show();
+                    }
                 }
+            } else {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("คำเตือน");
+                alert.setHeaderText(null);
+                alert.setContentText("กรุณาเลือก Playlist ที่ต้องการเพิ่มเพลง");
+                alert.show();
             }
         });
 
@@ -83,6 +113,7 @@ public class App extends Application {
             if (!selectedPlaylist.equals("All")) {
                 playlists.remove(selectedPlaylist);
                 playlistSelector.getItems().remove(selectedPlaylist);
+                targetPlaylistSelector.getItems().remove(selectedPlaylist);
                 playlistSelector.setValue("All");
                 currentPlaylist = "All";
             }
@@ -137,6 +168,10 @@ public class App extends Application {
         playlistSelector.setOnAction(e -> {
             currentPlaylist = playlistSelector.getValue();
             currentTrackIndex = 0;
+            updateSongList(currentPlaylist);
+            if (!playlists.get(currentPlaylist).isEmpty()) {
+                playTrack(songLabel, songInfoLabel, progressSlider, albumCover, playPauseButton, timeLabel);
+            }
         });
 
 
@@ -210,7 +245,18 @@ public class App extends Application {
         HBox mainControls = new HBox(15, leftSpacer, controlsLayout, rightSpacer, volumeLayout);
         mainControls.setAlignment(Pos.CENTER);
 
-        VBox mainLayout = new VBox(15, songLabel, songInfoLabel, playlistSelector, playlistManagement, albumCover, mainControls, openButton, stopButton, timeLabel, progressSlider);
+        // Song List View
+        Label songListLabel = new Label("รายการเพลง");
+        songListLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+        
+        songListView = new ListView<>();
+        songListView.setPrefHeight(150); // ลดความสูงลงจาก 300 เป็น 150
+        songListView.setStyle("-fx-control-inner-background: #f4f4f4;");
+        songListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        
+
+
+        VBox mainLayout = new VBox(15, songLabel, songInfoLabel, playlistSelector, playlistManagement, songListLabel, songListView, albumCover, mainControls, openButton, stopButton, timeLabel, progressSlider);
         mainLayout.setAlignment(Pos.CENTER);
         mainLayout.setStyle("-fx-padding: 20px;");
         Scene scene = new Scene(mainLayout, 450, 500);
@@ -309,6 +355,18 @@ public class App extends Application {
         }
     }
     
+    private void updateSongList(String playlist) {
+        if (playlists.containsKey(playlist)) {
+            List<Song> songs = playlists.get(playlist);
+            ObservableList<String> songItems = FXCollections.observableArrayList();
+            for (Song song : songs) {
+                songItems.add(song.getFileName() + " [" + song.getSongType() + "]");
+            }
+            songListView.setItems(songItems);
+            songListView.refresh();
+        }
+    }
+
     private String formatTime(Duration duration) {
         int minutes = (int) Math.floor(duration.toMinutes());
         int seconds = (int) Math.floor(duration.toSeconds() % 60);
