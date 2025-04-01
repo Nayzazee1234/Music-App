@@ -343,14 +343,36 @@ public class App extends Application {
     
 
     private Song assignSongType(File file) {
-        String fileName = file.getName().toLowerCase();
-        if (fileName.contains("pop")) {
-            return new PopSong(file);
-        } else if (fileName.contains("rock")) {
-            return new RockSong(file);
-        } else if (fileName.contains("jazz")) {
-            return new JazzSong(file);
-        } else {
+        try {
+            // ตรวจสอบจากชื่อไฟล์ก่อน
+            String fileName = file.getName().toLowerCase();
+            if (fileName.contains("pop")) {
+                return new PopSong(file);
+            } else if (fileName.contains("rock")) {
+                return new RockSong(file);
+            } else if (fileName.contains("jazz")) {
+                return new JazzSong(file);
+            }
+            
+            // ตรวจสอบ metadata
+            Media media = new Media(file.toURI().toString());
+            Object genre = media.getMetadata().get("genre");
+            if (genre != null) {
+                String genreStr = genre.toString().toLowerCase();
+                if (genreStr.contains("pop") || genreStr.contains("dance") || genreStr.contains("electronic")) {
+                    return new PopSong(file);
+                } else if (genreStr.contains("rock") || genreStr.contains("metal") || genreStr.contains("punk")) {
+                    return new RockSong(file);
+                } else if (genreStr.contains("jazz") || genreStr.contains("blues") || genreStr.contains("swing")) {
+                    return new JazzSong(file);
+                }
+            }
+            
+            // ถ้าไม่สามารถระบุประเภทได้
+            return new Song(file);
+            
+        } catch (Exception e) {
+            // กรณีเกิดข้อผิดพลาดในการอ่าน metadata
             return new Song(file);
         }
     }
