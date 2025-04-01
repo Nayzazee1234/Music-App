@@ -39,6 +39,7 @@ public class App extends Application {
         Button prevButton = new Button("⏮");
         Label songLabel = new Label("No Song Playing");
         Label songInfoLabel = new Label("Song Info");
+        Label timeLabel = new Label("00:00 / 00:00");
 
         // Playlist Management
         HBox playlistManagement = new HBox(10);
@@ -116,7 +117,7 @@ public class App extends Application {
                     }
                     if (addedCount > 0) {
                         currentTrackIndex = playlists.get("All").size() - addedCount;
-                        playTrack(songLabel, songInfoLabel, progressSlider, albumCover, playPauseButton);
+                        playTrack(songLabel, songInfoLabel, progressSlider, albumCover, playPauseButton, timeLabel);
                         Alert alert = new Alert(Alert.AlertType.INFORMATION);
                         alert.setTitle("เพิ่มเพลงสำเร็จ");
                         alert.setHeaderText(null);
@@ -174,7 +175,7 @@ public class App extends Application {
             List<Song> playlist = playlists.get(currentPlaylist);
             if (!playlist.isEmpty() && currentTrackIndex < playlist.size() - 1) {
                 currentTrackIndex++;
-                playTrack(songLabel, songInfoLabel, progressSlider, albumCover, playPauseButton);
+                playTrack(songLabel, songInfoLabel, progressSlider, albumCover, playPauseButton, timeLabel);
             }
         });
 
@@ -183,7 +184,7 @@ public class App extends Application {
             List<Song> playlist = playlists.get(currentPlaylist);
             if (!playlist.isEmpty() && currentTrackIndex > 0) {
                 currentTrackIndex--;
-                playTrack(songLabel, songInfoLabel, progressSlider, albumCover, playPauseButton);
+                playTrack(songLabel, songInfoLabel, progressSlider, albumCover, playPauseButton, timeLabel);
             }
         });
 
@@ -209,7 +210,7 @@ public class App extends Application {
         HBox mainControls = new HBox(15, leftSpacer, controlsLayout, rightSpacer, volumeLayout);
         mainControls.setAlignment(Pos.CENTER);
 
-        VBox mainLayout = new VBox(15, songLabel, songInfoLabel, playlistSelector, playlistManagement, albumCover, mainControls, openButton, stopButton, progressSlider);
+        VBox mainLayout = new VBox(15, songLabel, songInfoLabel, playlistSelector, playlistManagement, albumCover, mainControls, openButton, stopButton, timeLabel, progressSlider);
         mainLayout.setAlignment(Pos.CENTER);
         mainLayout.setStyle("-fx-padding: 20px;");
         Scene scene = new Scene(mainLayout, 450, 500);
@@ -219,7 +220,7 @@ public class App extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
     }
-    private void playTrack(Label songLabel, Label songInfoLabel, Slider progressSlider, StackPane albumCover, Button playPauseButton) {
+    private void playTrack(Label songLabel, Label songInfoLabel, Slider progressSlider, StackPane albumCover, Button playPauseButton, Label timeLabel) {
         List<Song> playlist = playlists.get(currentPlaylist);
         if (!playlist.isEmpty()) {
             if (currentSong != null) {
@@ -229,60 +230,63 @@ public class App extends Application {
     
             currentSong = playlist.get(currentTrackIndex);
     
-            // 🛠️ แก้ไขให้สร้าง MediaPlayer ใหม่ และกำหนดค่าให้ currentSong.mediaPlayer
             Media media = new Media(currentSong.file.toURI().toString());
             MediaPlayer mediaPlayer = new MediaPlayer(media);
             currentSong.mediaPlayer = mediaPlayer;  
             mediaPlayer.play();
             
-            playPauseButton.setText("Pause");
+            playPauseButton.setText("⏸");
             songLabel.setText("Playing: " + currentSong.getFileName());
             songInfoLabel.setText("Song Info: " + currentSong.getSongType());
     
-            // 🛠️ เช็คว่า Metadata มีข้อมูลก่อน
             if (mediaPlayer.getMedia() != null && mediaPlayer.getMedia().getMetadata() != null) {
                 mediaPlayer.getMedia().getMetadata().addListener(new MapChangeListener<String, Object>() {
                     @Override
                     public void onChanged(Change<? extends String, ? extends Object> change) {
-                    if (change.wasAdded() && "image".equals(change.getKey())) {
-                        Object imageData = change.getValueAdded();
-                        if (imageData instanceof Image) {
-                            ImageView albumImageView = new ImageView((Image) imageData);
-                            albumImageView.setFitWidth(200);
-                            albumImageView.setFitHeight(200);
-                            albumImageView.setPreserveRatio(true);
+                        if (change.wasAdded() && "image".equals(change.getKey())) {
+                            Object imageData = change.getValueAdded();
+                            if (imageData instanceof Image) {
+                                ImageView albumImageView = new ImageView((Image) imageData);
+                                albumImageView.setFitWidth(200);
+                                albumImageView.setFitHeight(200);
+                                albumImageView.setPreserveRatio(true);
     
-                            albumCover.getChildren().clear();
-                            albumCover.getChildren().add(albumImageView);
+                                albumCover.getChildren().clear();
+                                albumCover.getChildren().add(albumImageView);
+                            }
                         }
                     }
-                }
-            });
-        }
+                });
+            }
     
-            // Update progress bar
             mediaPlayer.setOnReady(() -> {
                 Duration totalDuration = mediaPlayer.getTotalDuration();
                 if (totalDuration != null && !totalDuration.isUnknown()) {
                     progressSlider.setMax(totalDuration.toMillis());
+                    String totalTime = formatTime(totalDuration);
+                    timeLabel.setText("00:00 / " + totalTime);
                 }
             });
-    
+
             mediaPlayer.currentTimeProperty().addListener((observable, oldValue, newValue) -> {
+                if (newValue == null) return;
                 if (!progressSlider.isPressed()) {
                     progressSlider.setValue(newValue.toMillis());
+                    String currentTime = formatTime(newValue);
+                    Duration totalDuration = mediaPlayer.getTotalDuration();
+                    if (totalDuration == null || totalDuration.isUnknown()) return;
+                    String totalTime = formatTime(totalDuration);
+                    timeLabel.setText(currentTime + " / " + totalTime);
                 }
             });
     
-            // Next song when finished
             mediaPlayer.setOnEndOfMedia(() -> {
                 if (currentTrackIndex < playlist.size() - 1) {
                     currentTrackIndex++;
-                    playTrack(songLabel, songInfoLabel, progressSlider, albumCover, playPauseButton);
+                    playTrack(songLabel, songInfoLabel, progressSlider, albumCover, playPauseButton, timeLabel);
                 }
             });
     
-            // Seek track
             progressSlider.setOnMouseReleased(e -> {
                 if (currentSong != null) {
                     currentSong.mediaPlayer.seek(Duration.millis(progressSlider.getValue()));
@@ -305,6 +309,12 @@ public class App extends Application {
         }
     }
     
+    private String formatTime(Duration duration) {
+        int minutes = (int) Math.floor(duration.toMinutes());
+        int seconds = (int) Math.floor(duration.toSeconds() % 60);
+        return String.format("%02d:%02d", minutes, seconds);
+    }
+    
     public static void main(String[] args) {
         launch(args);
     }
@@ -317,8 +327,6 @@ class Song {
 
     public Song(File file) {
         this.file = file;
-        Media media = new Media(file.toURI().toString());
-        this.mediaPlayer = new MediaPlayer(media);
     }
 
     public void play() {
